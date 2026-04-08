@@ -80,6 +80,9 @@ async def refresh_tokens() -> dict:
         new_tokens = response.json()
         # Keep refresh_token (not returned on refresh)
         new_tokens.setdefault("refresh_token", tokens["refresh_token"])
+        # Normalize: always save under both 'token' and 'access_token' keys
+        new_tokens["token"] = new_tokens.get("access_token") or new_tokens.get("token")
+        new_tokens["access_token"] = new_tokens["token"]
         _save_tokens(new_tokens)
         return new_tokens
 

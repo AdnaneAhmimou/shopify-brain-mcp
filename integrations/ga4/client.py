@@ -25,11 +25,11 @@ class GA4Client:
         return {"Authorization": f"Bearer {token}"}
 
     async def _request(self, url: str, payload: dict) -> dict:
-        """Make an authenticated GA4 API request, refreshing token on 401"""
+        """Make an authenticated GA4 API request, refreshing token on 401/403"""
         headers = await self._get_headers()
         async with httpx.AsyncClient() as client:
             response = await client.post(url, json=payload, headers=headers)
-            if response.status_code == 401:
+            if response.status_code in (401, 403):
                 await refresh_tokens()
                 headers = await self._get_headers()
                 response = await client.post(url, json=payload, headers=headers)
