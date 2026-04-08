@@ -8,7 +8,7 @@ import asyncio
 import uuid
 import time
 from typing import Any, Dict
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, Field
 from .client import shopify_client
 from .actions import actions as shopify_actions

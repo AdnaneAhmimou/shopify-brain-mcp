@@ -5,7 +5,7 @@ Exposes SEO analysis and optimization as MCP tools
 
 import logging
 from typing import Any, Dict
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
 from .client import seo_client
 
 logger = logging.getLogger(__name__)

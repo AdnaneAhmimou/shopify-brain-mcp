@@ -5,7 +5,7 @@ Exposes GA4 data as MCP tools
 
 import logging
 from typing import Any, Dict
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
 from .client import ga4_client
 
 logger = logging.getLogger(__name__)

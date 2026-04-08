@@ -1,5 +1,5 @@
 # MCP Framework
-fastmcp>=2.2.0
+mcp[cli]>=1.6.0
 
 # API Clients
 google-analytics-data==0.21.0

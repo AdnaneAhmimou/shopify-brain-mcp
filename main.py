@@ -16,7 +16,7 @@ import logging
 import sys
 from pathlib import Path
 from dotenv import load_dotenv
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
 from contextlib import contextmanager
 
 # Resolve project root relative to this file (works regardless of working directory)
@@ -59,7 +59,7 @@ def app_context():
         logger.info("Closing app context...")
 
 def build_server(host: str = "0.0.0.0", port: int = 5000) -> FastMCP:
-    server = FastMCP("shopify-brain-mcp", host=host, port=port)
+    server = FastMCP("shopify-brain-mcp")
     logger.info("FastMCP server created")
     logger.info("Registering tools...")
     register_shopify_tools(server)
@@ -86,14 +86,13 @@ async def main():
         server = build_server(host=MCP_SERVER_HOST, port=MCP_SERVER_PORT)
 
         if use_sse:
-            logger.info(f"Starting SSE server on {MCP_SERVER_HOST}:{MCP_SERVER_PORT}")
-            await server.run_sse_async()
+            logger.info(f"Starting Streamable HTTP server on {MCP_SERVER_HOST}:{MCP_SERVER_PORT}")
+            server.settings.host = MCP_SERVER_HOST
+            server.settings.port = MCP_SERVER_PORT
+            server.run(transport="streamable-http")
         else:
             logger.info("Starting stdio transport (local Claude Desktop mode)...")
-            try:
-                await server.run_async()
-            except KeyboardInterrupt:
-                logger.info("Shutting down MCP Server...")
+            server.run(transport="stdio")
 
 if __name__ == "__main__":
     try:

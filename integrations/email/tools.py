@@ -5,7 +5,7 @@ Exposes email sending functionality as MCP tools
 
 import logging
 from typing import Any, Dict
-from fastmcp import FastMCP
+from mcp.server.fastmcp import FastMCP
 from .service import email_service
 
 logger = logging.getLogger(__name__)
