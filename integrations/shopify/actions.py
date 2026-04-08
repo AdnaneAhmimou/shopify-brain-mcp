@@ -241,6 +241,153 @@ Format the response as JSON with:
             logger.error(f"Error publishing blog: {e}")
             return {"success": False, "error": str(e)}
 
+    async def bulk_seo_all_products(
+        self,
+        status: str = "active",
+        batch_size: int = 10,
+        dry_run: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Fetch ALL products from Shopify (paginated), generate SEO for each using Claude API,
+        and apply the updates directly. Runs entirely server-side — no context window needed.
+
+        status: "active", "draft", or "any"
+        batch_size: how many products to send to Claude at once for SEO generation
+        dry_run: if True, generate SEO but do not apply updates (preview mode)
+        """
+        logger.info(f"bulk_seo_all_products: status={status}, dry_run={dry_run}")
+
+        all_products = []
+
+        async with httpx.AsyncClient(timeout=30) as client:
+            # Paginate through all products using cursor-based pagination
+            url = f"{self.base_url}/products.json"
+            params = {
+                "status": status,
+                "limit": 250,
+                "fields": "id,title,product_type,vendor,tags,body_html",
+            }
+
+            while url:
+                resp = await client.get(url, params=params, headers=self.headers)
+                resp.raise_for_status()
+                products = resp.json().get("products", [])
+                all_products.extend(products)
+                logger.info(f"Fetched {len(all_products)} products so far...")
+
+                # Check Link header for next page
+                link_header = resp.headers.get("Link", "")
+                next_url = None
+                for part in link_header.split(","):
+                    part = part.strip()
+                    if 'rel="next"' in part:
+                        next_url = part.split(";")[0].strip().strip("<>")
+                        break
+
+                url = next_url
+                params = {}  # params are embedded in next_url
+
+        total = len(all_products)
+        logger.info(f"Total products fetched: {total}")
+
+        if total == 0:
+            return {"status": "done", "total": 0, "success": 0, "failed": 0, "message": "No products found"}
+
+        success_count = 0
+        fail_count = 0
+        results = []
+
+        # Process in batches
+        for i in range(0, total, batch_size):
+            batch = all_products[i:i + batch_size]
+            batch_num = i // batch_size + 1
+            logger.info(f"Processing batch {batch_num} ({len(batch)} products)...")
+
+            # Build prompt for this batch
+            product_lines = "\n".join(
+                f'- ID:{p["id"]} | Title: {p.get("title","?")} | Type: {p.get("product_type","?")} | Vendor: {p.get("vendor","?")}'
+                for p in batch
+            )
+
+            try:
+                message = self.claude.messages.create(
+                    model="claude-haiku-4-5-20251001",
+                    max_tokens=2000,
+                    messages=[{
+                        "role": "user",
+                        "content": f"""You are an SEO expert for an e-commerce store. Generate SEO meta titles and descriptions for these products.
+
+Products:
+{product_lines}
+
+Return ONLY a JSON array, no extra text:
+[
+  {{
+    "id": "product_id",
+    "meta_title": "50-60 char SEO title",
+    "meta_description": "150-160 char SEO description"
+  }},
+  ...
+]
+
+Rules:
+- meta_title: max 60 chars, include main keyword, brand if relevant
+- meta_description: max 160 chars, compelling, include call to action
+- Use the product title/type to infer what the product is"""
+                    }]
+                )
+
+                import json as _json
+                raw = message.content[0].text
+                start = raw.find("[")
+                end = raw.rfind("]") + 1
+                seo_list = _json.loads(raw[start:end])
+
+                for seo in seo_list:
+                    pid = str(seo.get("id", ""))
+                    meta_title = seo.get("meta_title", "")
+                    meta_description = seo.get("meta_description", "")
+
+                    if not pid:
+                        continue
+
+                    if dry_run:
+                        results.append({
+                            "product_id": pid,
+                            "status": "dry_run",
+                            "meta_title": meta_title,
+                            "meta_description": meta_description,
+                        })
+                        success_count += 1
+                        continue
+
+                    update_result = await self.update_product_seo(
+                        product_id=pid,
+                        seo_updates={"meta_title": meta_title, "meta_description": meta_description},
+                    )
+                    if update_result.get("success"):
+                        results.append({"product_id": pid, "status": "success", "meta_title": meta_title})
+                        success_count += 1
+                    else:
+                        results.append({"product_id": pid, "status": "error", "message": update_result.get("error")})
+                        fail_count += 1
+
+            except Exception as e:
+                logger.error(f"Batch {batch_num} failed: {e}", exc_info=True)
+                for p in batch:
+                    results.append({"product_id": str(p["id"]), "status": "error", "message": str(e)})
+                    fail_count += 1
+
+        return {
+            "status": "done",
+            "total_products": total,
+            "success": success_count,
+            "failed": fail_count,
+            "dry_run": dry_run,
+            "message": f"{'[DRY RUN] ' if dry_run else ''}Updated {success_count}/{total} products",
+            "results": results[:100],  # cap result list in response
+        }
+
     async def bulk_update_products(self, updates: Dict[str, Dict[str, Any]]) -> Dict[str, Any]:
         """
         Update multiple products at once

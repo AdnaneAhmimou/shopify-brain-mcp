@@ -331,6 +331,35 @@ def register_shopify_tools(server: FastMCP):
         }
 
     @server.tool()
+    async def seo_update_all_products(
+        status: str = "active",
+        dry_run: bool = False,
+    ) -> Dict[str, Any]:
+        """
+        Generate and apply SEO meta titles + descriptions for ALL products in the store automatically.
+
+        This runs entirely on the server — it fetches every product via Shopify pagination,
+        sends batches to Claude Haiku to generate SEO copy, then writes the metafields back.
+        No context window limit. Safe to run on stores with 500+ products.
+
+        status: Which products to update — "active" (default), "draft", or "any".
+        dry_run: Set to true to preview what SEO would be generated WITHOUT saving changes.
+
+        Returns: summary with success/fail counts and up to 100 sample results.
+        """
+        logger.info(f"Tool called: seo_update_all_products (status={status}, dry_run={dry_run})")
+        try:
+            result = await shopify_actions.bulk_seo_all_products(
+                status=status,
+                batch_size=10,
+                dry_run=dry_run,
+            )
+            return result
+        except Exception as e:
+            logger.error(f"Error in seo_update_all_products: {e}", exc_info=True)
+            return {"status": "error", "message": str(e)}
+
+    @server.tool()
     async def list_store_pages() -> Dict[str, Any]:
         """
         List all pages on the Shopify store (Privacy Policy, About Us, FAQ, etc).
