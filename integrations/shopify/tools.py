@@ -273,4 +273,61 @@ def register_shopify_tools(server: FastMCP):
             logger.error(f"Error creating blog article: {e}")
             return {"status": "error", "message": str(e)}
 
+    @server.tool()
+    async def bulk_update_seo(
+        updates: list,
+    ) -> Dict[str, Any]:
+        """
+        Update SEO titles and meta descriptions for multiple products in one call.
+
+        Use this instead of calling update_product_seo repeatedly.
+        updates: list of objects, each with:
+          - product_id (str): the Shopify product ID
+          - meta_title (str): SEO title
+          - meta_description (str): SEO meta description
+
+        Example:
+        [
+          {"product_id": "123", "meta_title": "Best Slicer", "meta_description": "..."},
+          {"product_id": "456", "meta_title": "Storage Jar", "meta_description": "..."}
+        ]
+        """
+        logger.info(f"Tool called: bulk_update_seo ({len(updates)} products)")
+        results = []
+        success_count = 0
+        fail_count = 0
+
+        for item in updates:
+            product_id = str(item.get("product_id", ""))
+            meta_title = item.get("meta_title", "")
+            meta_description = item.get("meta_description", "")
+
+            if not product_id:
+                results.append({"product_id": product_id, "status": "error", "message": "Missing product_id"})
+                fail_count += 1
+                continue
+
+            try:
+                result = await shopify_actions.update_product_seo(
+                    product_id=product_id,
+                    seo_updates={"meta_title": meta_title, "meta_description": meta_description}
+                )
+                if result.get("success"):
+                    results.append({"product_id": product_id, "status": "success", "meta_title": meta_title})
+                    success_count += 1
+                else:
+                    results.append({"product_id": product_id, "status": "error", "message": result.get("error")})
+                    fail_count += 1
+            except Exception as e:
+                results.append({"product_id": product_id, "status": "error", "message": str(e)})
+                fail_count += 1
+
+        return {
+            "status": "done",
+            "total": len(updates),
+            "success": success_count,
+            "failed": fail_count,
+            "results": results,
+        }
+
     logger.info("Shopify tools registered")
