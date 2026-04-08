@@ -85,10 +85,7 @@ async def main():
     with app_context():
         server = build_server(host=MCP_SERVER_HOST, port=MCP_SERVER_PORT)
 
-        if use_http:
-            logger.info(f"Starting Streamable HTTP server on {MCP_SERVER_HOST}:{MCP_SERVER_PORT}")
-            await server.run_http_async()
-        elif use_sse:
+        if use_sse:
             logger.info(f"Starting SSE server on {MCP_SERVER_HOST}:{MCP_SERVER_PORT}")
             await server.run_sse_async()
         else:
