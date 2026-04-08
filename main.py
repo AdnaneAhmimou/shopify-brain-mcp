@@ -89,10 +89,10 @@ async def main():
             logger.info(f"Starting Streamable HTTP server on {MCP_SERVER_HOST}:{MCP_SERVER_PORT}")
             server.settings.host = MCP_SERVER_HOST
             server.settings.port = MCP_SERVER_PORT
-            server.run(transport="streamable-http")
+            await server.run_streamable_http_async()
         else:
             logger.info("Starting stdio transport (local Claude Desktop mode)...")
-            server.run(transport="stdio")
+            await server.run_stdio_async()
 
 if __name__ == "__main__":
     try:
