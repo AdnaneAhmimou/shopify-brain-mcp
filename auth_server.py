@@ -22,7 +22,7 @@ CREDENTIALS_FILE = PROJECT_ROOT / "google-oauth-credentials.json"
 TOKENS_FILE = PROJECT_ROOT / "tokens" / "google_tokens.json"
 
 VPS_HOST = os.getenv("VPS_HOST", "srv1534106.hstgr.cloud")
-REDIRECT_URI = f"http://{VPS_HOST}:5001/callback"
+REDIRECT_URI = f"https://{VPS_HOST}:5000/auth/callback"
 
 SCOPES = [
     "https://www.googleapis.com/auth/analytics.readonly",
@@ -72,7 +72,7 @@ def authorize():
     return redirect(auth_url)
 
 
-@app.route("/callback")
+@app.route("/auth/callback")
 def callback():
     error = request.args.get("error")
     if error:
