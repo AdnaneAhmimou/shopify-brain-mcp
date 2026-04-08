@@ -7,6 +7,9 @@
       "Bash(\"/c/Users/Adnane/Documents/shopify-brain/Shopify Brain/Shopify Brain/shopify-brain-mcp/venv/Scripts/pip.exe\" install \"fastmcp==2.0.0\" \"pydantic==2.10.0\")",
       "Bash(\"/c/Users/Adnane/Documents/shopify-brain/Shopify Brain/Shopify Brain/shopify-brain-mcp/venv/Scripts/pip.exe\" install \"pydantic==2.8.2\")",
       "Bash(venv/Scripts/python.exe -c ':*)"
+    ],
+    "additionalDirectories": [
+      "c:\\Users\\Adnane\\AppData\\Local\\Packages\\Claude_pzs8sxrjxfjjc\\LocalCache\\Roaming\\Claude"
     ]
   }
 }

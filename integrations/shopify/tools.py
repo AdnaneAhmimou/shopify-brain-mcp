@@ -456,14 +456,14 @@ def register_shopify_tools(server: FastMCP):
         headers = {**shopify_client.headers, "Content-Type": "application/json"}
 
         mutation = """
-        mutation shopPolicyUpdate($input: ShopPolicyInput!) {
-          shopPolicyUpdate(input: $input) {
+        mutation shopPolicyUpdate($shopPolicy: ShopPolicyInput!) {
+          shopPolicyUpdate(shopPolicy: $shopPolicy) {
             userErrors { field message }
-            shopPolicy { id type url }
+            shopPolicy { type url }
           }
         }
         """
-        variables = {"input": {"type": policy_type, "body": body_html}}
+        variables = {"shopPolicy": {"type": policy_type, "body": body_html}}
 
         try:
             async with httpx.AsyncClient() as client:
