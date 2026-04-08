@@ -71,13 +71,24 @@ def build_server(host: str = "0.0.0.0", port: int = 5000) -> FastMCP:
 
 async def main():
     use_sse = "--sse" in sys.argv
+    use_http = "--http" in sys.argv
 
-    logger.info(f"Starting Shopify Brain MCP Server (transport={'sse' if use_sse else 'stdio'})...")
+    if use_http:
+        transport = "http"
+    elif use_sse:
+        transport = "sse"
+    else:
+        transport = "stdio"
+
+    logger.info(f"Starting Shopify Brain MCP Server (transport={transport})...")
 
     with app_context():
         server = build_server(host=MCP_SERVER_HOST, port=MCP_SERVER_PORT)
 
-        if use_sse:
+        if use_http:
+            logger.info(f"Starting Streamable HTTP server on {MCP_SERVER_HOST}:{MCP_SERVER_PORT}")
+            await server.run_http_async()
+        elif use_sse:
             logger.info(f"Starting SSE server on {MCP_SERVER_HOST}:{MCP_SERVER_PORT}")
             await server.run_sse_async()
         else:
