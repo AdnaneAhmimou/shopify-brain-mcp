@@ -5,7 +5,7 @@ Update products, publish content, take actions in Shopify
 
 import logging
 import httpx
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 from anthropic import Anthropic
 from config.settings import SHOPIFY_ACCESS_TOKEN, SHOPIFY_API_VERSION, ANTHROPIC_API_KEY
 
@@ -16,7 +16,13 @@ class ShopifyActions:
     """Execute write operations on Shopify"""
 
     def __init__(self):
-        self.store_url = "arbasa-7450.myshopify.com"
+        from config.settings import SHOPIFY_STORE_URL
+        raw = SHOPIFY_STORE_URL or "arbasa-7450.myshopify.com"
+        if "myshopify.com" not in raw:
+            store_name = raw.split(".")[0]
+            self.store_url = f"{store_name}.myshopify.com"
+        else:
+            self.store_url = raw
         self.api_version = SHOPIFY_API_VERSION
         self.base_url = f"https://{self.store_url}/admin/api/{self.api_version}"
         self.headers = {"X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN}

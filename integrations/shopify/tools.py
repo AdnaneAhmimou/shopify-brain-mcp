@@ -428,4 +428,66 @@ def register_shopify_tools(server: FastMCP):
             logger.error(f"Error updating page: {e}")
             return {"status": "error", "message": str(e)}
 
+    @server.tool()
+    async def update_store_policy(
+        policy_type: str,
+        body_html: str,
+    ) -> Dict[str, Any]:
+        """
+        Update a Shopify store policy page (Refund Policy, Privacy Policy, Terms of Service, etc).
+
+        policy_type must be one of:
+          - REFUND_POLICY
+          - PRIVACY_POLICY
+          - TERMS_OF_SERVICE
+          - SHIPPING_POLICY
+          - LEGAL_NOTICE
+          - SUBSCRIPTION_POLICY
+
+        body_html: Full policy content in HTML format.
+        """
+        logger.info(f"Tool called: update_store_policy (type={policy_type})")
+        valid_types = {"REFUND_POLICY", "PRIVACY_POLICY", "TERMS_OF_SERVICE", "SHIPPING_POLICY", "LEGAL_NOTICE", "SUBSCRIPTION_POLICY"}
+        if policy_type not in valid_types:
+            return {"status": "error", "message": f"Invalid policy_type. Must be one of: {', '.join(valid_types)}"}
+
+        import httpx
+        graphql_url = f"https://{shopify_client.store_url}/admin/api/2024-10/graphql.json"
+        headers = {**shopify_client.headers, "Content-Type": "application/json"}
+
+        mutation = """
+        mutation shopPolicyUpdate($input: ShopPolicyInput!) {
+          shopPolicyUpdate(input: $input) {
+            userErrors { field message }
+            shopPolicy { id type url }
+          }
+        }
+        """
+        variables = {"input": {"type": policy_type, "body": body_html}}
+
+        try:
+            async with httpx.AsyncClient() as client:
+                resp = await client.post(
+                    graphql_url,
+                    json={"query": mutation, "variables": variables},
+                    headers=headers,
+                )
+                resp.raise_for_status()
+                data = resp.json()
+
+                errors = data.get("data", {}).get("shopPolicyUpdate", {}).get("userErrors", [])
+                if errors:
+                    return {"status": "error", "message": errors}
+
+                policy = data.get("data", {}).get("shopPolicyUpdate", {}).get("shopPolicy", {})
+                return {
+                    "status": "success",
+                    "policy_type": policy_type,
+                    "url": policy.get("url"),
+                    "message": f"{policy_type} updated successfully",
+                }
+        except Exception as e:
+            logger.error(f"Error updating policy: {e}")
+            return {"status": "error", "message": str(e)}
+
     logger.info("Shopify tools registered")

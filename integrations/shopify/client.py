@@ -15,7 +15,15 @@ class ShopifyClient:
     """Shopify API client wrapper"""
 
     def __init__(self):
-        self.store_url = "arbasa-7450.myshopify.com"
+        from config.settings import SHOPIFY_STORE_URL
+        # Use env var, fallback to hardcoded for backwards compat
+        raw = SHOPIFY_STORE_URL or "arbasa-7450.myshopify.com"
+        # Ensure it's the .myshopify.com domain for API calls
+        if "myshopify.com" not in raw:
+            store_name = raw.split(".")[0]
+            self.store_url = f"{store_name}.myshopify.com"
+        else:
+            self.store_url = raw
         self.api_version = SHOPIFY_API_VERSION
         self.base_url = f"https://{self.store_url}/admin/api/{self.api_version}"
         self.headers = {"X-Shopify-Access-Token": SHOPIFY_ACCESS_TOKEN}
