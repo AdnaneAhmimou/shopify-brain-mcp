@@ -330,4 +330,102 @@ def register_shopify_tools(server: FastMCP):
             "results": results,
         }
 
+    @server.tool()
+    async def list_store_pages() -> Dict[str, Any]:
+        """
+        List all pages on the Shopify store (Privacy Policy, About Us, FAQ, etc).
+
+        Returns page IDs, titles, and handles needed for update_store_page.
+        """
+        logger.info("Tool called: list_store_pages")
+        try:
+            import httpx
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    f"{shopify_client.base_url}/pages.json?fields=id,title,handle,updated_at&limit=100",
+                    headers=shopify_client.headers
+                )
+                resp.raise_for_status()
+                pages = resp.json().get("pages", [])
+                return {
+                    "status": "success",
+                    "count": len(pages),
+                    "pages": pages,
+                }
+        except Exception as e:
+            logger.error(f"Error listing pages: {e}")
+            return {"status": "error", "message": str(e)}
+
+    @server.tool()
+    async def get_store_page(page_id: str) -> Dict[str, Any]:
+        """
+        Get the full content of a store page by its ID.
+
+        Use list_store_pages first to find the page ID.
+        """
+        logger.info(f"Tool called: get_store_page ({page_id})")
+        try:
+            import httpx
+            async with httpx.AsyncClient() as client:
+                resp = await client.get(
+                    f"{shopify_client.base_url}/pages/{page_id}.json",
+                    headers=shopify_client.headers
+                )
+                resp.raise_for_status()
+                page = resp.json().get("page", {})
+                return {
+                    "status": "success",
+                    "id": page.get("id"),
+                    "title": page.get("title"),
+                    "handle": page.get("handle"),
+                    "body_html": page.get("body_html"),
+                    "updated_at": page.get("updated_at"),
+                }
+        except Exception as e:
+            logger.error(f"Error getting page: {e}")
+            return {"status": "error", "message": str(e)}
+
+    @server.tool()
+    async def update_store_page(
+        page_id: str,
+        title: str = "",
+        body_html: str = "",
+    ) -> Dict[str, Any]:
+        """
+        Update the title and/or content of a Shopify store page.
+
+        Use this to update Privacy Policy, About Us, FAQ, Terms of Service, or any other page.
+        page_id: The numeric page ID (get it from list_store_pages).
+        title: New page title (leave empty to keep existing).
+        body_html: Full page content in HTML (leave empty to keep existing).
+        """
+        logger.info(f"Tool called: update_store_page ({page_id})")
+        try:
+            import httpx
+            payload: Dict[str, Any] = {"page": {"id": page_id}}
+            if title:
+                payload["page"]["title"] = title
+            if body_html:
+                payload["page"]["body_html"] = body_html
+
+            async with httpx.AsyncClient() as client:
+                resp = await client.put(
+                    f"{shopify_client.base_url}/pages/{page_id}.json",
+                    json=payload,
+                    headers=shopify_client.headers
+                )
+                resp.raise_for_status()
+                page = resp.json().get("page", {})
+                return {
+                    "status": "success",
+                    "page_id": page.get("id"),
+                    "title": page.get("title"),
+                    "handle": page.get("handle"),
+                    "updated_at": page.get("updated_at"),
+                    "message": f"Page '{page.get('title')}' updated successfully",
+                }
+        except Exception as e:
+            logger.error(f"Error updating page: {e}")
+            return {"status": "error", "message": str(e)}
+
     logger.info("Shopify tools registered")

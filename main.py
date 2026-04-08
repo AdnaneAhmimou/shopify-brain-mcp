@@ -58,8 +58,8 @@ def app_context():
     finally:
         logger.info("Closing app context...")
 
-def build_server() -> FastMCP:
-    server = FastMCP("shopify-brain-mcp")
+def build_server(host: str = "0.0.0.0", port: int = 5000) -> FastMCP:
+    server = FastMCP("shopify-brain-mcp", host=host, port=port)
     logger.info("FastMCP server created")
     logger.info("Registering tools...")
     register_shopify_tools(server)
@@ -75,11 +75,11 @@ async def main():
     logger.info(f"Starting Shopify Brain MCP Server (transport={'sse' if use_sse else 'stdio'})...")
 
     with app_context():
-        server = build_server()
+        server = build_server(host=MCP_SERVER_HOST, port=MCP_SERVER_PORT)
 
         if use_sse:
             logger.info(f"Starting SSE server on {MCP_SERVER_HOST}:{MCP_SERVER_PORT}")
-            await server.run_sse_async(host=MCP_SERVER_HOST, port=MCP_SERVER_PORT)
+            await server.run_sse_async()
         else:
             logger.info("Starting stdio transport (local Claude Desktop mode)...")
             try:
