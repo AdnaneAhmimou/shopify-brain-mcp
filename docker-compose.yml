@@ -14,7 +14,7 @@ services:
       - n8n_default
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.shopify-mcp.rule=Host(`srv1534106.hstgr.cloud`) && (PathPrefix(`/sse`) || PathPrefix(`/messages`))"
+      - "traefik.http.routers.shopify-mcp.rule=Host(`srv1534106.hstgr.cloud`) && PathPrefix(`/mcp`)"
       - "traefik.http.routers.shopify-mcp.entrypoints=websecure"
       - "traefik.http.routers.shopify-mcp.tls=true"
       - "traefik.http.routers.shopify-mcp.tls.certresolver=mytlschallenge"
