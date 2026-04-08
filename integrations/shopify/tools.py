@@ -4,11 +4,17 @@ Exposes Shopify data and operations as MCP tools
 """
 
 import logging
+import asyncio
+import uuid
+import time
 from typing import Any, Dict
 from fastmcp import FastMCP
 from pydantic import BaseModel, Field
 from .client import shopify_client
 from .actions import actions as shopify_actions
+
+# In-memory job tracker for background SEO jobs
+_seo_jobs: Dict[str, Dict] = {}
 
 logger = logging.getLogger(__name__)
 
@@ -336,28 +342,78 @@ def register_shopify_tools(server: FastMCP):
         dry_run: bool = False,
     ) -> Dict[str, Any]:
         """
-        Generate and apply SEO meta titles + descriptions for ALL products in the store automatically.
+        Start a background job that generates and applies SEO for ALL products in the store.
 
-        This runs entirely on the server — it fetches every product via Shopify pagination,
-        sends batches to Claude Haiku to generate SEO copy, then writes the metafields back.
-        No context window limit. Safe to run on stores with 500+ products.
+        Returns immediately with a job_id. Use check_seo_job(job_id) to monitor progress.
+        Safe for stores with 500+ products — runs entirely server-side with no context limit.
 
-        status: Which products to update — "active" (default), "draft", or "any".
-        dry_run: Set to true to preview what SEO would be generated WITHOUT saving changes.
-
-        Returns: summary with success/fail counts and up to 100 sample results.
+        status: "active" (default), "draft", or "any"
+        dry_run: true = preview only, do NOT save changes
         """
-        logger.info(f"Tool called: seo_update_all_products (status={status}, dry_run={dry_run})")
-        try:
-            result = await shopify_actions.bulk_seo_all_products(
-                status=status,
-                batch_size=10,
-                dry_run=dry_run,
-            )
-            return result
-        except Exception as e:
-            logger.error(f"Error in seo_update_all_products: {e}", exc_info=True)
-            return {"status": "error", "message": str(e)}
+        job_id = str(uuid.uuid4())[:8]
+        _seo_jobs[job_id] = {
+            "status": "running",
+            "started_at": time.time(),
+            "total": 0,
+            "success": 0,
+            "failed": 0,
+            "dry_run": dry_run,
+            "message": "Starting...",
+        }
+
+        async def _run():
+            try:
+                result = await shopify_actions.bulk_seo_all_products(
+                    status=status,
+                    batch_size=10,
+                    dry_run=dry_run,
+                )
+                _seo_jobs[job_id].update({
+                    "status": "done",
+                    "total": result.get("total_products", 0),
+                    "success": result.get("success", 0),
+                    "failed": result.get("failed", 0),
+                    "message": result.get("message", "Completed"),
+                    "sample_results": result.get("results", [])[:20],
+                })
+            except Exception as e:
+                logger.error(f"SEO job {job_id} failed: {e}", exc_info=True)
+                _seo_jobs[job_id].update({"status": "error", "message": str(e)})
+
+        asyncio.create_task(_run())
+        logger.info(f"SEO job {job_id} started in background")
+
+        return {
+            "status": "started",
+            "job_id": job_id,
+            "message": f"SEO job started for all {status} products. Use check_seo_job('{job_id}') to monitor progress.",
+            "dry_run": dry_run,
+        }
+
+    @server.tool()
+    async def check_seo_job(job_id: str) -> Dict[str, Any]:
+        """
+        Check the progress of a background SEO update job started by seo_update_all_products.
+
+        job_id: The ID returned when you started the job.
+        """
+        logger.info(f"Tool called: check_seo_job ({job_id})")
+        job = _seo_jobs.get(job_id)
+        if not job:
+            return {"status": "error", "message": f"No job found with ID '{job_id}'"}
+
+        elapsed = round(time.time() - job["started_at"], 1)
+        return {
+            "job_id": job_id,
+            "status": job["status"],
+            "elapsed_seconds": elapsed,
+            "total": job.get("total", 0),
+            "success": job.get("success", 0),
+            "failed": job.get("failed", 0),
+            "dry_run": job.get("dry_run", False),
+            "message": job.get("message", ""),
+            "sample_results": job.get("sample_results", []),
+        }
 
     @server.tool()
     async def list_store_pages() -> Dict[str, Any]:
