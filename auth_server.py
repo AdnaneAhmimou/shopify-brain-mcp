@@ -36,6 +36,7 @@ def is_authorized() -> bool:
     return TOKENS_FILE.exists()
 
 
+@app.route("/auth")
 @app.route("/")
 def index():
     status = "connected" if is_authorized() else "not connected"

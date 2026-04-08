@@ -29,6 +29,7 @@ services:
       - "traefik.http.routers.shopify-auth.rule=Host(`srv1534106.hstgr.cloud`) && PathPrefix(`/auth`)"
       - "traefik.http.routers.shopify-auth.entrypoints=websecure"
       - "traefik.http.routers.shopify-auth.tls=true"
+      - "traefik.http.routers.shopify-auth.tls.certresolver=mytlschallenge"
       - "traefik.http.services.shopify-auth.loadbalancer.server.port=5001"
 
 networks:
