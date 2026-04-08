@@ -1,0 +1,23 @@
+services:
+  mcp:
+    build: .
+    command: python main.py --sse
+    ports:
+      - "5000:5000"
+    env_file: .env
+    volumes:
+      - ./logs:/app/logs
+      - ./tokens:/app/tokens
+    restart: always
+
+  auth:
+    build: .
+    command: python auth_server.py
+    ports:
+      - "5001:5001"
+    env_file: .env
+    environment:
+      - OAUTHLIB_INSECURE_TRANSPORT=1
+    volumes:
+      - ./tokens:/app/tokens
+    restart: always

@@ -1,0 +1,12 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pip install:*)",
+      "Bash(\"/c/Users/Adnane/Documents/shopify-brain/Shopify Brain/Shopify Brain/shopify-brain-mcp/venv/Scripts/python.exe\" -c \"import sys; print\\(sys.executable\\); import dotenv; print\\('dotenv OK'\\)\")",
+      "Bash(\"/c/Users/Adnane/Documents/shopify-brain/Shopify Brain/Shopify Brain/shopify-brain-mcp/venv/Scripts/python.exe\" -c \"import sys; print\\(sys.path\\)\")",
+      "Bash(\"/c/Users/Adnane/Documents/shopify-brain/Shopify Brain/Shopify Brain/shopify-brain-mcp/venv/Scripts/pip.exe\" install \"fastmcp==2.0.0\" \"pydantic==2.10.0\")",
+      "Bash(\"/c/Users/Adnane/Documents/shopify-brain/Shopify Brain/Shopify Brain/shopify-brain-mcp/venv/Scripts/pip.exe\" install \"pydantic==2.8.2\")",
+      "Bash(venv/Scripts/python.exe -c ':*)"
+    ]
+  }
+}

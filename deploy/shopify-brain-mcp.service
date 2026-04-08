@@ -1,0 +1,16 @@
+[Unit]
+Description=Shopify Brain MCP Server (SSE)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/shopify-brain-mcp
+ExecStart=/root/shopify-brain-mcp/venv/bin/python main.py --sse
+Restart=always
+RestartSec=5
+StandardOutput=append:/root/shopify-brain-mcp/logs/mcp-server.log
+StandardError=append:/root/shopify-brain-mcp/logs/mcp-server.log
+
+[Install]
+WantedBy=multi-user.target

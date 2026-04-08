@@ -1,0 +1,395 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Shopify Brain - AI Assistant</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        .container {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+            width: 100%;
+            max-width: 900px;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 40px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2em;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 1.1em;
+            opacity: 0.9;
+        }
+
+        .content {
+            padding: 40px 30px;
+        }
+
+        .input-section {
+            margin-bottom: 30px;
+        }
+
+        .input-label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 12px;
+            color: #333;
+        }
+
+        .input-container {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+
+        #commandInput {
+            flex: 1;
+            padding: 14px 16px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1em;
+            transition: border-color 0.3s;
+        }
+
+        #commandInput:focus {
+            outline: none;
+            border-color: #667eea;
+            background-color: #f8f9ff;
+        }
+
+        .send-btn {
+            padding: 14px 32px;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 1em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: transform 0.2s, box-shadow 0.2s;
+        }
+
+        .send-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        .send-btn:active {
+            transform: translateY(0);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .suggestions {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-top: 20px;
+        }
+
+        .suggestion-item {
+            padding: 12px 16px;
+            background: #f5f5f5;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-size: 0.9em;
+        }
+
+        .suggestion-item:hover {
+            background: #e8e8ff;
+            border-color: #667eea;
+            color: #667eea;
+        }
+
+        .results {
+            margin-top: 40px;
+            padding-top: 30px;
+            border-top: 2px solid #f0f0f0;
+        }
+
+        .results-empty {
+            text-align: center;
+            color: #999;
+            padding: 40px 20px;
+        }
+
+        .result-item {
+            margin-bottom: 20px;
+            padding: 20px;
+            background: #f9f9f9;
+            border-left: 4px solid #667eea;
+            border-radius: 6px;
+        }
+
+        .result-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .result-command {
+            font-weight: 600;
+            color: #333;
+            flex: 1;
+        }
+
+        .result-time {
+            font-size: 0.85em;
+            color: #999;
+        }
+
+        .result-content {
+            color: #555;
+            line-height: 1.6;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .error {
+            padding: 15px;
+            background: #fee;
+            border-left: 4px solid #e74c3c;
+            border-radius: 6px;
+            color: #c0392b;
+            margin-bottom: 20px;
+        }
+
+        .success {
+            padding: 15px;
+            background: #efe;
+            border-left: 4px solid #27ae60;
+            border-radius: 6px;
+            color: #1e8449;
+            margin-bottom: 20px;
+        }
+
+        @media (max-width: 600px) {
+            .header {
+                padding: 30px 20px;
+            }
+
+            .header h1 {
+                font-size: 1.5em;
+            }
+
+            .content {
+                padding: 20px;
+            }
+
+            .input-container {
+                flex-direction: column;
+            }
+
+            .send-btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🧠 Shopify Brain</h1>
+            <p>AI Assistant for Your E-Commerce Store</p>
+        </div>
+
+        <div class="content">
+            <div class="input-section">
+                <label class="input-label">What would you like to do?</label>
+                <div class="input-container">
+                    <input
+                        type="text"
+                        id="commandInput"
+                        placeholder="e.g., Find products with low SEO and improve them..."
+                        onkeypress="handleKeyPress(event)"
+                    >
+                    <button class="send-btn" onclick="sendCommand()" id="sendBtn">Send</button>
+                </div>
+
+                <div id="suggestions" class="suggestions"></div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p style="margin-top: 10px; color: #666;">Processing your request...</p>
+            </div>
+
+            <div id="results" class="results">
+                <div class="results-empty">No commands yet. Try one of the suggestions above!</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let resultsContainer = null;
+
+        // Load suggestions on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            resultsContainer = document.getElementById('results');
+            loadSuggestions();
+        });
+
+        function loadSuggestions() {
+            fetch('/api/suggestions')
+                .then(r => r.json())
+                .then(data => {
+                    const container = document.getElementById('suggestions');
+                    container.innerHTML = '';
+
+                    data.forEach(category => {
+                        category.examples.forEach(example => {
+                            const div = document.createElement('div');
+                            div.className = 'suggestion-item';
+                            div.textContent = example;
+                            div.onclick = () => {
+                                document.getElementById('commandInput').value = example;
+                                sendCommand();
+                            };
+                            container.appendChild(div);
+                        });
+                    });
+                })
+                .catch(err => console.error('Error loading suggestions:', err));
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter') {
+                sendCommand();
+            }
+        }
+
+        async function sendCommand() {
+            const input = document.getElementById('commandInput');
+            const command = input.value.trim();
+
+            if (!command) {
+                alert('Please enter a command');
+                return;
+            }
+
+            // Show loading state
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('sendBtn').disabled = true;
+
+            try {
+                const response = await fetch('/api/command', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ command })
+                });
+
+                const data = await response.json();
+
+                // Clear loading
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('sendBtn').disabled = false;
+
+                if (data.success) {
+                    displayResult(command, data.result, data.timestamp);
+                    input.value = '';
+                } else {
+                    displayError(data.error);
+                }
+            } catch (error) {
+                document.getElementById('loading').style.display = 'none';
+                document.getElementById('sendBtn').disabled = false;
+                displayError('Error: ' + error.message);
+            }
+        }
+
+        function displayResult(command, result, timestamp) {
+            if (resultsContainer.querySelector('.results-empty')) {
+                resultsContainer.innerHTML = '';
+            }
+
+            const item = document.createElement('div');
+            item.className = 'result-item';
+
+            const time = new Date(timestamp).toLocaleTimeString();
+
+            item.innerHTML = `
+                <div class="result-header">
+                    <div class="result-command">📌 ${escapeHtml(command)}</div>
+                    <div class="result-time">${time}</div>
+                </div>
+                <div class="result-content">${escapeHtml(result)}</div>
+            `;
+
+            resultsContainer.insertBefore(item, resultsContainer.firstChild);
+        }
+
+        function displayError(message) {
+            if (resultsContainer.querySelector('.results-empty')) {
+                resultsContainer.innerHTML = '';
+            }
+
+            const errorDiv = document.createElement('div');
+            errorDiv.className = 'error';
+            errorDiv.textContent = '❌ ' + message;
+            resultsContainer.insertBefore(errorDiv, resultsContainer.firstChild);
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>

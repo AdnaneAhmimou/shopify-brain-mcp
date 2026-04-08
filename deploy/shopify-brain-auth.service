@@ -1,0 +1,15 @@
+[Unit]
+Description=Shopify Brain Auth Server (Google OAuth)
+After=network.target
+
+[Service]
+Type=simple
+User=root
+WorkingDirectory=/root/shopify-brain-mcp
+ExecStart=/root/shopify-brain-mcp/venv/bin/python auth_server.py
+Restart=always
+RestartSec=5
+Environment=OAUTHLIB_INSECURE_TRANSPORT=1
+
+[Install]
+WantedBy=multi-user.target

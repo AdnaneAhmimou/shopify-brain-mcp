@@ -1,0 +1,9 @@
+.git
+__pycache__
+*.pyc
+*.pyo
+logs/
+tokens/
+*.egg-info
+.pytest_cache
+deploy/
