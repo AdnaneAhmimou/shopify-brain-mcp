@@ -63,7 +63,7 @@ async def exchange_code(code: str) -> dict:
 
 async def refresh_tokens() -> dict:
     tokens = load_tokens()
-    if not tokens.get("refresh_token"):
+    if not (tokens.get("refresh_token") or tokens.get("token_uri")):
         raise RuntimeError("No refresh token saved")
     creds = _load_credentials()
     async with httpx.AsyncClient() as client:
@@ -101,9 +101,10 @@ def _save_tokens(tokens: dict):
 
 
 def get_access_token() -> str | None:
-    return load_tokens().get("access_token")
+    tokens = load_tokens()
+    # auth_server.py saves as "token", older flow saves as "access_token"
+    return tokens.get("access_token") or tokens.get("token")
 
 
 def is_authenticated() -> bool:
-    tokens = load_tokens()
-    return bool(tokens.get("access_token"))
+    return bool(get_access_token())
