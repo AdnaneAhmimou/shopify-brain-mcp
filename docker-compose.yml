@@ -19,6 +19,7 @@ services:
       - "traefik.http.routers.shopify-brain.tls=true"
       - "traefik.http.routers.shopify-brain.tls.certresolver=mytlschallenge"
       - "traefik.http.services.shopify-brain.loadbalancer.server.port=5000"
+      - "traefik.docker.network=n8n_default"
 
   auth:
     build: .
