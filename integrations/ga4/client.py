@@ -8,7 +8,7 @@ from typing import Any, Dict
 from datetime import datetime, timedelta
 import httpx
 from config.settings import GA4_PROPERTY_ID
-from integrations.google_auth import get_access_token, refresh_tokens
+from integrations.google_auth import get_access_token, refresh_tokens, is_token_expired
 
 logger = logging.getLogger(__name__)
 
@@ -25,7 +25,9 @@ class GA4Client:
         return {"Authorization": f"Bearer {token}"}
 
     async def _request(self, url: str, payload: dict) -> dict:
-        """Make an authenticated GA4 API request, refreshing token on 401/403"""
+        """Make an authenticated GA4 API request, proactively refreshing expired tokens"""
+        if is_token_expired():
+            await refresh_tokens()
         headers = await self._get_headers()
         async with httpx.AsyncClient() as client:
             response = await client.post(url, json=payload, headers=headers)

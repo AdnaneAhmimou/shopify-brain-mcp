@@ -5,6 +5,7 @@ Single auth flow covers both services
 
 import json
 import logging
+import time
 from pathlib import Path
 from urllib.parse import urlencode
 import httpx
@@ -83,6 +84,8 @@ async def refresh_tokens() -> dict:
         # Normalize: always save under both 'token' and 'access_token' keys
         new_tokens["token"] = new_tokens.get("access_token") or new_tokens.get("token")
         new_tokens["access_token"] = new_tokens["token"]
+        # Store expiry timestamp so we can proactively refresh
+        new_tokens["expires_at"] = time.time() + new_tokens.get("expires_in", 3600) - 60
         _save_tokens(new_tokens)
         return new_tokens
 
@@ -101,6 +104,14 @@ def _save_tokens(tokens: dict):
     with open(TOKEN_FILE, "w") as f:
         json.dump(existing, f)
     logger.info("Google tokens saved")
+
+
+def is_token_expired() -> bool:
+    tokens = load_tokens()
+    expires_at = tokens.get("expires_at")
+    if not expires_at:
+        return False  # no expiry info, assume valid
+    return time.time() > expires_at
 
 
 def get_access_token() -> str | None:
