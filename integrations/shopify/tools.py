@@ -416,6 +416,65 @@ def register_shopify_tools(server: FastMCP):
         }
 
     @server.tool()
+    async def shopify_api(
+        method: str,
+        endpoint: str,
+        payload: dict = None,
+        params: dict = None,
+    ) -> Dict[str, Any]:
+        """
+        Make any Shopify Admin REST API call directly.
+
+        Use this for any operation not covered by other tools:
+        creating pages, collections, discounts, metafields, blogs, articles,
+        webhooks, custom redirects, navigation menus, or anything else.
+
+        method: HTTP method — GET, POST, PUT, DELETE, PATCH
+        endpoint: Shopify API path e.g. "/pages.json", "/products/123.json", "/collects.json"
+        payload: JSON body to send (for POST/PUT/PATCH requests)
+        params: URL query parameters (for GET requests)
+
+        Examples:
+          Create a page:
+            method="POST", endpoint="/pages.json",
+            payload={"page": {"title": "FAQ", "body_html": "<h1>FAQ</h1>..."}}
+
+          Create a collection:
+            method="POST", endpoint="/custom_collections.json",
+            payload={"custom_collection": {"title": "Summer Sale"}}
+
+          Delete a product:
+            method="DELETE", endpoint="/products/123.json"
+
+          List blogs:
+            method="GET", endpoint="/blogs.json"
+        """
+        logger.info(f"Tool called: shopify_api ({method} {endpoint})")
+        try:
+            import httpx
+            url = f"{shopify_client.base_url}{endpoint}"
+            async with httpx.AsyncClient(timeout=30) as client:
+                response = await client.request(
+                    method=method.upper(),
+                    url=url,
+                    headers=shopify_client.headers,
+                    json=payload,
+                    params=params,
+                )
+                response.raise_for_status()
+                # DELETE returns 200 with no body
+                if response.status_code == 200 and not response.content:
+                    return {"status": "success", "message": f"{method} {endpoint} completed"}
+                try:
+                    data = response.json()
+                except Exception:
+                    return {"status": "success", "raw": response.text}
+                return {"status": "success", "data": data}
+        except Exception as e:
+            logger.error(f"shopify_api error: {e}")
+            return {"status": "error", "message": str(e)}
+
+    @server.tool()
     async def list_store_pages() -> Dict[str, Any]:
         """
         List all pages on the Shopify store (Privacy Policy, About Us, FAQ, etc).
