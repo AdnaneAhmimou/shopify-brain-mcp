@@ -7,7 +7,7 @@ import logging
 import asyncio
 import uuid
 import time
-from typing import Any, Dict
+from typing import Any, Dict, Optional
 from mcp.server.fastmcp import FastMCP
 from pydantic import BaseModel, Field
 from .client import shopify_client
@@ -281,7 +281,7 @@ def register_shopify_tools(server: FastMCP):
 
     @server.tool()
     async def bulk_update_seo(
-        updates: list,
+        updates: list[dict],
     ) -> Dict[str, Any]:
         """
         Update SEO titles and meta descriptions for multiple products in one call.
@@ -419,8 +419,8 @@ def register_shopify_tools(server: FastMCP):
     async def shopify_api(
         method: str,
         endpoint: str,
-        payload: dict = None,
-        params: dict = None,
+        payload: Optional[Dict[str, Any]] = None,
+        params: Optional[Dict[str, Any]] = None,
     ) -> Dict[str, Any]:
         """
         Make any Shopify Admin REST API call directly.
