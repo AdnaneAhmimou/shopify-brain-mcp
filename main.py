@@ -88,10 +88,10 @@ async def main():
         server = build_server(host=MCP_SERVER_HOST, port=MCP_SERVER_PORT)
 
         if use_sse:
-            logger.info(f"Starting Streamable HTTP server on {MCP_SERVER_HOST}:{MCP_SERVER_PORT}")
+            logger.info(f"Starting SSE server on {MCP_SERVER_HOST}:{MCP_SERVER_PORT}")
             server.settings.host = MCP_SERVER_HOST
             server.settings.port = MCP_SERVER_PORT
-            await server.run_streamable_http_async()
+            await server.run_sse_async()
         else:
             logger.info("Starting stdio transport (local Claude Desktop mode)...")
             await server.run_stdio_async()
