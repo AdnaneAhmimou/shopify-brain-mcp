@@ -37,7 +37,8 @@ Once the user picks a scenario:
 
 3. **Set up Image-to-Video**:
    - Switch to Image-to-Video mode
-   - Download the product image URL and upload it to the upload zone
+   - **Download the image first**: use `browser_navigate` to open the image URL directly in the browser, then use `browser_save_as` or right-click → Save Image As to save it locally to the Desktop or Downloads folder
+   - Then click the Higgsfield upload zone and select the locally saved image file
    - **Set duration: 15 seconds** (always — never use 5s)
    - Set aspect ratio: 9:16 (vertical for social)
 
