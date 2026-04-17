@@ -23,6 +23,13 @@ GA4_OAUTH_CLIENT_ID = os.getenv("GA4_OAUTH_CLIENT_ID", "")
 GA4_OAUTH_CLIENT_SECRET = os.getenv("GA4_OAUTH_CLIENT_SECRET", "")
 GA4_OAUTH_REDIRECT_URI = os.getenv("GA4_OAUTH_REDIRECT_URI", "")
 
+# Higgsfield Configuration
+HIGGSFIELD_API_KEY_ID = os.getenv("HIGGSFIELD_API_KEY_ID", "")
+HIGGSFIELD_API_KEY_SECRET = os.getenv("HIGGSFIELD_API_KEY_SECRET", "")
+
+# Simplified Configuration
+SIMPLIFIED_API_TOKEN = os.getenv("SIMPLIFIED_API_TOKEN", "")
+
 # Ahrefs Configuration
 AHREFS_API_KEY = os.getenv("AHREFS_API_KEY", "")
 

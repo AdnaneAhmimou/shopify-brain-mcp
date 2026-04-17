@@ -32,6 +32,7 @@ from integrations.shopify.tools import register_shopify_tools
 from integrations.ga4.tools import register_ga4_tools
 from integrations.seo.tools import register_seo_tools
 from integrations.email.tools import register_email_tools
+from integrations.content.tools import register_content_tools
 from config.settings import validate_config, MCP_SERVER_HOST, MCP_SERVER_PORT
 
 # Configure logging
@@ -66,6 +67,7 @@ def build_server(host: str = "0.0.0.0", port: int = 5000) -> FastMCP:
     register_ga4_tools(server)
     register_seo_tools(server)
     register_email_tools(server)
+    register_content_tools(server)
     logger.info("All tools registered")
     return server
 

@@ -58,3 +58,16 @@ vault/
 # OS
 .DS_Store
 Thumbs.db
+
+# Screenshots and temp files
+*.png
+*.jpg
+*.jpeg
+generated-videos/
+.playwright-mcp/
+menu-refs.md
+nav-snapshot.md
+video-menu-snapshot.md
+
+# Claude local settings
+.claude/settings.local.json
