@@ -22,37 +22,36 @@ Full pipeline: Shopify product → detailed 15-second Ad/UGC scenario → Higgsf
    - Caption + hashtags
 5. Ask the user: "Which scenario? (1, 2, or 3)" and "Which image?"
 
-### PHASE 2 — Generate Video on Higgsfield (Playwright)
-Once the user picks a scenario:
+### PHASE 2 — Generate Video on Higgsfield (Playwright) — FAST MODE
+Once the user picks a scenario, execute these steps as fast as possible — minimal screenshots, no waiting unless necessary:
 
-1. **Open Higgsfield**:
-   - `browser_navigate` to https://higgsfield.ai
-   - Take a screenshot to check login state
-   - If not logged in: navigate to https://higgsfield.ai/login → tell user to log in
+1. **Download the image first** (do this before opening Higgsfield):
+   - `browser_navigate` to the image URL directly
+   - Right-click the image → Save Image As → save to Desktop as `product.jpg`
+   - This avoids upload failures later
 
-2. **Go to video generation**:
-   - Navigate to https://higgsfield.ai/create/video
-   - Take a screenshot to confirm the UI
-   - Select **Seedance 2.0** from the model dropdown
+2. **Open Higgsfield in same tab**:
+   - `browser_navigate` to https://higgsfield.ai/create/video
+   - Do NOT take screenshots unless something looks wrong
+   - If redirected to login page: tell user to log in, then navigate back to https://higgsfield.ai/create/video
 
-3. **Set up Image-to-Video**:
-   - Switch to Image-to-Video mode
-   - **Download the image first**: use `browser_navigate` to open the image URL directly in the browser, then use `browser_save_as` or right-click → Save Image As to save it locally to the Desktop or Downloads folder
-   - Then click the Higgsfield upload zone and select the locally saved image file
-   - **Set duration: 15 seconds** (always — never use 5s)
-   - Set aspect ratio: 9:16 (vertical for social)
+3. **Configure in one pass** (no screenshots between steps):
+   - Select **Seedance 2.0** from model dropdown
+   - Switch to **Image-to-Video** mode
+   - Click upload zone → select the `product.jpg` saved on Desktop
+   - Set duration to **15 seconds**
+   - Set aspect ratio to **9:16**
+   - Paste the `seedance_prompt` into the prompt field
 
-4. **Enter the Seedance prompt**:
-   - Paste the exact `seedance_prompt` from the chosen scenario
+4. **Generate**:
+   - Click Generate button
+   - Take ONE screenshot to confirm generation started
+   - Wait silently — only check every 60 seconds (not 30)
+   - Take screenshot only when progress bar looks complete
 
-5. **Generate**:
-   - Click the Generate button
-   - Take screenshots every 30 seconds to monitor progress
-   - Wait until fully rendered (progress bar complete / preview visible)
-
-6. **Grab the video URL**:
-   - Right-click the video → Copy video address
-   - OR inspect the download button to extract the CDN URL (e.g. `cloudfront.net/...`)
+5. **Grab the video URL**:
+   - Right-click the completed video → Copy video address
+   - OR click the download button and extract the CDN URL from the network request
    - **This URL is the bridge to Phase 3**
 
 ### PHASE 3 — Post to Social via Simplified
@@ -77,9 +76,8 @@ With the video CDN URL from Phase 2:
 
 ## Key Notes
 - **Always use 15 seconds** — never 5s or 10s
-- **UGC Ads always have voiceover** — a real person talking on camera, use the voiceover_script
-- **Cinematic/Paid Ads use music** — describe mood to user so they can add it in post
+- **UGC Ads always have voiceover** — a real person talking on camera
+- **Minimize screenshots** — only take when confirming generation started and when done
+- **Check every 60 seconds** not 30 — video generation takes 2-4 minutes
 - Higgsfield session persists after first manual login — fully automatic after that
-- The CDN video URL from Higgsfield is public and passes directly to Simplified
 - Always show image URLs as plain text so user can verify the right image is used
-- If Higgsfield UI changes, take a screenshot and adapt to what's visible
