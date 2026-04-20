@@ -8,16 +8,16 @@ from datetime import date
 from typing import Any, Dict
 from urllib.parse import urlparse
 import httpx
-from config.settings import AHREFS_API_KEY
+from config.settings import AHREFS_MCP_KEY
 
 logger = logging.getLogger(__name__)
 
 class SEOClient:
-    """Ahrefs API client wrapper"""
+    """Ahrefs MCP API client"""
 
     def __init__(self):
-        self.api_key = AHREFS_API_KEY
-        self.base_url = "https://api.ahrefs.com/v3"
+        self.api_key = AHREFS_MCP_KEY
+        self.base_url = "https://api.ahrefs.com/mcp/mcp"
         self.headers = {
             "Authorization": f"Bearer {self.api_key}",
             "Content-Type": "application/json"

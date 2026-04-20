@@ -31,7 +31,7 @@ HIGGSFIELD_API_KEY_SECRET = os.getenv("HIGGSFIELD_API_KEY_SECRET", "")
 SIMPLIFIED_API_TOKEN = os.getenv("SIMPLIFIED_API_TOKEN", "")
 
 # Ahrefs Configuration
-AHREFS_API_KEY = os.getenv("AHREFS_API_KEY", "")
+AHREFS_MCP_KEY = os.getenv("AHREFS_MCP_KEY", "")
 
 # Anthropic Configuration (Claude API)
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
@@ -65,7 +65,7 @@ def validate_config():
 
     optional_configs = {
         "GA4": [GA4_PROPERTY_ID, GA4_OAUTH_CLIENT_ID, GA4_OAUTH_CLIENT_SECRET],
-        "Ahrefs": [AHREFS_API_KEY],
+        "Ahrefs": [AHREFS_MCP_KEY],
         "Email": [EMAIL_FROM, EMAIL_PASSWORD],
     }
 
